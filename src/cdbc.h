@@ -8,7 +8,6 @@
 #include <curl/curl.h>
 #include <curl/types.h>
 #include <curl/easy.h>
-#include "str.h"
 
 #define CDBC_ERROR		-1	
 #define CDBC_OK			0
@@ -21,6 +20,19 @@
 # define TRUE (1)
 # define FALSE (0)
 #endif
+
+#define STR_STRUCT_DEFINED 1
+typedef unsigned char uchar;
+
+typedef struct {
+	uchar *s;		/* Memory */
+	unsigned long i;	/* Index to current pos. */
+	unsigned long m;	/* Maximum allocated so-far */
+ } str;
+
+#define STRCHUNK	(256)	/* Minimum allocation size */
+
+#include "str.h"
 
 typedef struct _cdbc {
 	char *baseurl;

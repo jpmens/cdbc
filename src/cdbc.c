@@ -1,4 +1,5 @@
 #include "cdbc.h"
+#include "str.h"
 #include <string.h>
 
 #define Cso(opt, val)   curl_easy_setopt((cd)->con, (opt), (val))
