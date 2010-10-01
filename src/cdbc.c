@@ -193,7 +193,7 @@ json_t *cdbc_get_js(CDBC *cd, char *docid)
 		
 }
 
-int cdbc_view_walk(CDBC *cd, char *ddoc, char *view, int (func)(CDBC *, json_t *obj))
+int cdbc_view_walk(CDBC *cd, char *ddoc, char *view, char *args, int (func)(CDBC *, json_t *obj))
 {
 	str uri;
 	int rc;
@@ -208,6 +208,10 @@ int cdbc_view_walk(CDBC *cd, char *ddoc, char *view, int (func)(CDBC *, json_t *
 	dscat(&uri, ddoc);
 	dscat(&uri, "/_view/");
 	dscat(&uri, view);
+
+	if (args && *args) {
+		dscat(&uri, args);
+	}
 
 	rc = cdbc_request(cd, dsstring(&uri));
 	cd->js = json_loads(dsstring(&cd->buf),
@@ -343,6 +347,11 @@ void cdbc_free(CDBC *cd)
 
 		dsfree(&cd->url);
 		dsfree(&cd->buf);
+
+		if (cd->js) {
+			json_decref(cd->js);
+			cd->js = NULL;
+		}
 
 		free(cd);
 		cd = NULL;
