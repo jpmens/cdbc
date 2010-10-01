@@ -151,6 +151,7 @@ int cdbc_usedb(CDBC *cd, char *dbname)
 int cdbc_get(CDBC *cd, char *docid)
 {
 	str uri;
+	int rc;
 
 	if (!cd)
 		return CDBC_ERROR;
@@ -164,7 +165,9 @@ int cdbc_get(CDBC *cd, char *docid)
 	dsadd(&uri, '/');
 	dscat(&uri, docid);
 
-	return cdbc_request(cd, dsstring(&uri));
+	rc = cdbc_request(cd, dsstring(&uri));
+	dsfree(&uri);
+	return (rc);
 
 }
 
@@ -189,6 +192,45 @@ json_t *cdbc_get_js(CDBC *cd, char *docid)
 		
 }
 
+int cdbc_view_walk(CDBC *cd, char *ddoc, char *view, int (func)(CDBC *, json_t *obj))
+{
+	str uri;
+	int rc;
+
+	if (!cd || !cd->dbname)
+		return (CDBC_ERROR);
+
+	dsinit(&uri);
+
+	dscat(&uri, cd->dbname);
+	dscat(&uri, "/_design/");
+	dscat(&uri, ddoc);
+	dscat(&uri, "/_view/");
+	dscat(&uri, view);
+
+	rc = cdbc_request(cd, dsstring(&uri));
+	cd->js = json_loads(dsstring(&cd->buf),
+		0,	// FIXME flags
+		&cd->jserr);
+
+	if (rc == CDBC_OK) {
+		json_t *rows;
+		int n;
+
+		rows = json_object_get(cd->js, "rows");
+
+		for (n = 0; n < json_array_size(rows); n++) {
+			if (func(cd, json_array_get(rows, n)) != 0) {
+				break;
+			}
+		}
+	}
+
+	dsfree(&uri);
+	return (CDBC_OK);
+}
+
+
 char *cdbc_get_js_string(CDBC *cd, char *field)
 {
 	json_t *obj;
@@ -197,7 +239,7 @@ char *cdbc_get_js_string(CDBC *cd, char *field)
 		return NULL;
 
 	obj = json_object_get(cd->js, field);
-	return (obj) ? json_string_value(obj) : NULL;
+	return (obj) ? (char *)json_string_value(obj) : NULL;
 }
 
 int cdbc_get_js_integer(CDBC *cd, char *field)
