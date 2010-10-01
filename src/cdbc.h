@@ -32,6 +32,8 @@ typedef struct _cdbc {
 	int	debuglevel;
 
 	char *dbname;				// Current CouchDB database
+	json_t *js;
+	json_error_t jserr;
 
 	// xp_debug_func debugfunc;
 	struct curl_slist *hlist;		// Headerlist
@@ -56,5 +58,11 @@ int cdbc_usedb(CDBC *, char *);
 
 int cdbc_get(CDBC *cd, char *docid);
 int cdbc_create(CDBC *cd, char *docid, char *json);
+int cdbc_create_js(CDBC *cd, char *docid, json_t *js);
+
+json_t *cdbc_get_js(CDBC *cd, char *docid);
+
+char *cdbc_get_js_string(CDBC *cd, char *field);
+int cdbc_get_js_integer(CDBC *cd, char *field);
 
 #endif /* __CDBC_H */

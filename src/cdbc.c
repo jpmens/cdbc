@@ -59,21 +59,13 @@ CDBC *cdbc_new(char *baseurl)
 
 	Cso(CURLOPT_HTTPHEADER, cd->hlist);
 
-	/*
-	 * don't fail on error. Instead, I'll handle the error in the
-	 * header callback, returning -1 and a prepared XML fault
-	 */
-
 	Cso(CURLOPT_FAILONERROR, 0);
-	// Cso( CURLOPT_DEBUGFUNCTION, debug_callback);
 	Cso(CURLOPT_FILE, stdout );
 	Cso(CURLOPT_WRITEDATA, &cd->buf );		// `ptr' in collect()
 	Cso(CURLOPT_WRITEFUNCTION, collect );
 
 	Cso(CURLOPT_USERAGENT, "CDBC");
-
-	// Cso( CURLOPT_DEBUGFUNCTION, debug_callback);
-	Cso(CURLOPT_VERBOSE, 0);
+	Cso(CURLOPT_VERBOSE, FALSE);
 	
 
 	Cso(CURLOPT_ENCODING, "deflate");
@@ -170,6 +162,49 @@ int cdbc_get(CDBC *cd, char *docid)
 
 }
 
+json_t *cdbc_get_js(CDBC *cd, char *docid)
+{
+	int rc;
+
+	if (!cd)
+		return NULL;
+
+	if (!cd->dbname)
+		return NULL;
+
+	if ((rc = cdbc_get(cd, docid)) != CDBC_OK)
+		return NULL;
+
+	cd->js = json_loads(dsstring(&cd->buf),
+		0,	// FIXME flags
+		&cd->jserr);
+
+	return (cd->js);
+		
+}
+
+char *cdbc_get_js_string(CDBC *cd, char *field)
+{
+	json_t *obj;
+
+	if (!cd || !field || !cd->dbname)
+		return NULL;
+
+	obj = json_object_get(cd->js, field);
+	return (obj) ? json_string_value(obj) : NULL;
+}
+
+int cdbc_get_js_integer(CDBC *cd, char *field)
+{
+	json_t *obj;
+
+	if (!cd || !field || !cd->dbname)
+		return -1;
+
+	obj = json_object_get(cd->js, field);
+	return (obj) ? json_integer_value(obj) : -1;
+}
+
 int cdbc_create(CDBC *cd, char *docid, char *json)
 {
 	if (!cd)
@@ -202,6 +237,7 @@ int cdbc_create(CDBC *cd, char *docid, char *json)
 
 	cd->status = curl_easy_perform(cd->con);
 	if (cd->status != 0) {
+	printf("STATUS == %d\n", cd->status);
 		return CDBC_STATUS;
 	}
 
@@ -216,6 +252,22 @@ int cdbc_create(CDBC *cd, char *docid, char *json)
 
 	return (CDBC_OK);
 }
+
+int cdbc_create_js(CDBC *cd, char *docid, json_t *js)
+{
+	char *json_string;
+	int rc;
+
+	json_string = json_dumps(js, 0);
+
+	printf("%s\n", json_string);
+	rc = cdbc_create(cd, docid, json_string);
+
+	if (json_string)
+		free(json_string);
+	return (rc);
+}
+
 
 static void cdbc_addheader(CDBC *cd, char *header)
 {
@@ -249,12 +301,6 @@ static size_t collect(void *ptr, size_t size, size_t nmemb, void *stream)
 	char *bp = (char *)ptr;
 
 	nbytes = size * nmemb;
-
-	/*
-	fprintf(stdout, "[[[->");
-	fwrite(ptr, size, nmemb, stdout);
-	fprintf(stdout, "<-]]]");
-	*/
 
 	for (n = 0; n < nbytes; n++) {
 		dsadd(st, *bp++);
