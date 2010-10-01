@@ -9,6 +9,12 @@ static void cdbc_addheader(CDBC *cd, char *header);
 
 static int curl_global;
 
+struct buffer {
+	char *buf;
+	size_t len;
+	size_t pos;
+};
+
 static int debug_callback(CURL *con, int infotype, char *s, size_t len, void *v)
 {
         switch (infotype) {
@@ -207,6 +213,8 @@ int cdbc_get_js_integer(CDBC *cd, char *field)
 
 int cdbc_create(CDBC *cd, char *docid, char *json)
 {
+	struct buffer buffr;
+
 	if (!cd)
 		return CDBC_ERROR;
 
@@ -222,12 +230,18 @@ int cdbc_create(CDBC *cd, char *docid, char *json)
 		dsadd(&cd->url, '/');
 		dscat(&cd->url, docid);
 
-		Cso( CURLOPT_UPLOAD, TRUE );	// a.k.a. _PUT
+		buffr.buf = json;
+		buffr.len = strlen(json);
+		buffr.pos = 0L;
+
+		Cso( CURLOPT_UPLOAD, 1 );	// a.k.a. _PUT
+		Cso( CURLOPT_POST, 0 );
 		Cso( CURLOPT_READFUNCTION, sender );
-		Cso( CURLOPT_READDATA, json );
+		Cso( CURLOPT_READDATA, &buffr );
 		Cso( CURLOPT_INFILESIZE, (long)strlen(json) );
 	} else {
-		Cso( CURLOPT_POST, TRUE );
+		Cso( CURLOPT_POST, 1 );
+		Cso( CURLOPT_UPLOAD, 0 );
 		Cso( CURLOPT_POSTFIELDS, json );
 		Cso( CURLOPT_POSTFIELDSIZE, strlen(json) );
 	}
@@ -309,19 +323,18 @@ static size_t collect(void *ptr, size_t size, size_t nmemb, void *stream)
 	return (nbytes);		// Indicate success
 }
 
-static size_t sender(void *ptr, size_t size, size_t nmemb, void *userdata)
+static size_t sender(void *ptr, size_t size, size_t nmemb, void *buffr)
 {
 	size_t len;
-	char *json = (char *)userdata;
-
-
+	struct buffer *buffer = buffr;
 	size_t nbytes = size * nmemb;
 
-	// printf("sender len: %ld\n", nbytes);
+	if (nbytes > buffer->len - buffer->pos)
+		nbytes = buffer->len - buffer->pos;
 
-	len = strlen(json);
+	memcpy(ptr, buffer->buf + buffer->pos, nbytes);
+	buffer->pos += nbytes;
 
-	memcpy(ptr, userdata, len);
-
-	return len;
+	printf("sending: %ld\n", nbytes);
+	return (nbytes);
 }
