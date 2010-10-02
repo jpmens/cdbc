@@ -1,6 +1,7 @@
 #include "cdbc.h"
 #include "str.h"
 #include <string.h>
+#include <stdarg.h>
 
 #define Cso(opt, val)   curl_easy_setopt((cd)->con, (opt), (val))
 static size_t collect(void *ptr, size_t size, size_t nmemb, void *stream);
@@ -124,9 +125,14 @@ size_t cdbc_body_length(CDBC *cd)
 	return (cd ? dslen(&cd->buf) : CDBC_ERROR);
 }
 
-char *cdbc_body(CDBC *cd)
+char *cdbc_body(CDBC *cd, size_t *length)
 {
-	return (cd ? dsstring(&cd->buf) : NULL);
+	if (!cd)
+		return (NULL);
+	if (length)
+		*length = dslen(&cd->buf);
+
+	return (dsstring(&cd->buf));
 }
 
 int cdbc_body_tofile(CDBC *cd, FILE *fp)
@@ -193,8 +199,10 @@ json_t *cdbc_get_js(CDBC *cd, char *docid)
 		
 }
 
-int cdbc_view_walk(CDBC *cd, char *ddoc, char *view, char *args, int (func)(CDBC *, json_t *obj))
+int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj), char *ddoc, char *view, char *arg, ...)
 {
+	va_list ap;
+	char *s;
 	str uri;
 	int rc;
 
@@ -209,8 +217,17 @@ int cdbc_view_walk(CDBC *cd, char *ddoc, char *view, char *args, int (func)(CDBC
 	dscat(&uri, "/_view/");
 	dscat(&uri, view);
 
-	if (args && *args) {
-		dscat(&uri, args);
+
+	if (arg && *arg) {
+		dsadd(&uri, '?');
+		dscat(&uri, arg);
+
+		va_start(ap, arg);
+		while ((s = va_arg(ap, char *)) != NULL) {
+			dsadd(&uri, '&');
+			dscat(&uri, s);
+		}
+		va_end(ap);
 	}
 
 	rc = cdbc_request(cd, dsstring(&uri));
@@ -389,4 +406,11 @@ static size_t sender(void *ptr, size_t size, size_t nmemb, void *buffr)
 
 	printf("sending: %ld\n", nbytes);
 	return (nbytes);
+}
+
+char *cdbc_lasturl(CDBC *cd)
+{
+	if (!cd || dslen(&cd->url) == 0)
+		return (NULL);
+	return (dsstring(&cd->url));
 }
