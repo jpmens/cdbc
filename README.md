@@ -1,3 +1,19 @@
+# CDBC: CouchDB C API
+
+Warning: this is a work in progress, and the API will change!
+
+There are dozens of API implementations for [CouchDB](http://couchdb.apache.org/) in all sorts of languages, but I've yet to find a decent C implementation, which is why I'm implementing one myself. I know of some attempts, but they haven't wow'ed me:
+
+* [Getting started with C](http://wiki.apache.org/couchdb/Getting_started_with_C) on the CouchDB Wiki.
+* [Pillowtalk](http://www.sevenforge.com/pillowtalk/)
+
+The _C_ouch_DB_ _C_ library here, is a wrapper which uses Daniel Stenberg's [libCurl](http://curl.haxx.se/libcurl/) for the HTTP transport, and Petri Lehtinen's [Jansson](http://www.digip.org/jansson/), a C library for encoding, decoding and manipulating [JSON](http://www.json.org/) data.
+
+I chose [Jansson](http://www.digip.org/jansson/) over other JSON C implementations because I particulary liked its interface, and it worked out of the box for me.
+
+
+
+
 ## Function reference
 
 ### CDBC *cdbc_new(char *url);
