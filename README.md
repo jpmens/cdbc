@@ -1,6 +1,6 @@
 # CDBC: CouchDB C API
 
-Warning: this is a work in progress, and the API will change!
+Warning: this is a work in progress, it is incomplete, and the API **will** change!
 
 There are dozens of API implementations for [CouchDB](http://couchdb.apache.org/) in all sorts of languages, but I've yet to find a decent C implementation, which is why I'm implementing one myself. I know of some attempts, but they haven't wow'ed me:
 
