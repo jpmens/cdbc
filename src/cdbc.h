@@ -22,10 +22,10 @@
 #endif
 
 #define STR_STRUCT_DEFINED 1
-typedef unsigned char uchar;
+// typedef unsigned char uchar;
 
 typedef struct {
-	uchar *s;		/* Memory */
+	u_char *s;		/* Memory */
 	unsigned long i;	/* Index to current pos. */
 	unsigned long m;	/* Maximum allocated so-far */
  } str;
@@ -62,7 +62,7 @@ CDBC *cdbc_new(char *);
 void cdbc_free(CDBC *);
 int cdbc_request(CDBC *, char *);
 
-char *cdbc_body(CDBC *, size_t *length);
+u_char *cdbc_body(CDBC *, size_t *length);
 size_t cdbc_body_length(CDBC *cd);
 int cdbc_body_tofile(CDBC *, FILE *);
 

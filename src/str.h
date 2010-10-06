@@ -9,11 +9,15 @@
  */
 
 #include <stdlib.h>
+#include <sys/types.h>
+
+void dscat(str *st, char *s);
+
 #ifndef STR_STRUCT_DEFINED
-typedef unsigned char uchar;
+// typedef unsigned char uchar;
 
 typedef struct {
-	uchar *s;		/* Memory */
+	u_char *s;		/* Memory */
 	unsigned long i;	/* Index to current pos. */
 	unsigned long m;	/* Maximum allocated so-far */
  } str;
@@ -24,7 +28,7 @@ typedef struct {
 #endif
 
 /* Initialize a dynamic string. Use if str is auto */
-#define dsinit(st)  (st)->s = (uchar *)malloc(STRCHUNK), \
+#define dsinit(st)  (st)->s = (u_char *)malloc(STRCHUNK), \
 		    (st)->i = 0, (st)->m = STRCHUNK
 
 /*
@@ -50,12 +54,12 @@ typedef struct {
 
 #define dsadd(st, c)	do { \
 			  if (((st)->i) >= ((st)->m - 1))   {\
-				  (st)->s = (uchar *)realloc(\
+				  (st)->s = (u_char *)realloc(\
 				   (char *)(st)->s,(unsigned)((st)->m\
 				    + STRCHUNK));\
 				(st)->m += STRCHUNK;\
 			  } \
-			  (st)->s[(st)->i++] = (uchar)(c), \
+			  (st)->s[(st)->i++] = (u_char)(c), \
 			  (st)->s[(st)->i] = '\0' ; \
 			} while (0)
 

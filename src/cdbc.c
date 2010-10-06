@@ -6,7 +6,6 @@
 #define Cso(opt, val)   curl_easy_setopt((cd)->con, (opt), (val))
 static size_t collect(void *ptr, size_t size, size_t nmemb, void *stream);
 static size_t sender(void *ptr, size_t size, size_t nmemb, void *userdata);
-static size_t curl_hdr(void *ptr, size_t size, size_t nmemb, void *stream);
 static void cdbc_addheader(CDBC *cd, char *header);
 
 static int curl_global;
@@ -17,6 +16,7 @@ struct buffer {
 	size_t pos;
 };
 
+#if 0
 static int debug_callback(CURL *con, int infotype, char *s, size_t len, void *v)
 {
         switch (infotype) {
@@ -28,6 +28,7 @@ static int debug_callback(CURL *con, int infotype, char *s, size_t len, void *v)
         // write(2, s, len);
         return (0);
 }
+#endif
 
 CDBC *cdbc_new(char *baseurl)
 {
@@ -125,7 +126,7 @@ size_t cdbc_body_length(CDBC *cd)
 	return (cd ? dslen(&cd->buf) : CDBC_ERROR);
 }
 
-char *cdbc_body(CDBC *cd, size_t *length)
+u_char *cdbc_body(CDBC *cd, size_t *length)
 {
 	if (!cd)
 		return (NULL);
@@ -146,13 +147,15 @@ int cdbc_body_tofile(CDBC *cd, FILE *fp)
 int cdbc_usedb(CDBC *cd, char *dbname)
 {
 	if (!cd)
-		return CDBC_ERROR;
+		return (CDBC_ERROR);
 
 	if (cd->dbname) {
 		free(cd->dbname);
 	}
 
 	cd->dbname = strdup(dbname);
+	
+	return (CDBC_OK);
 }
 
 int cdbc_get(CDBC *cd, char *docid)
@@ -172,7 +175,7 @@ int cdbc_get(CDBC *cd, char *docid)
 	dsadd(&uri, '/');
 	dscat(&uri, docid);
 
-	rc = cdbc_request(cd, dsstring(&uri));
+	rc = cdbc_request(cd, (char *)dsstring(&uri));
 	dsfree(&uri);
 	return (rc);
 
@@ -191,7 +194,7 @@ json_t *cdbc_get_js(CDBC *cd, char *docid)
 	if ((rc = cdbc_get(cd, docid)) != CDBC_OK)
 		return NULL;
 
-	cd->js = json_loads(dsstring(&cd->buf),
+	cd->js = json_loads((char *)dsstring(&cd->buf),
 		0,	// FIXME flags
 		&cd->jserr);
 
@@ -230,8 +233,8 @@ int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj, void *userdata), v
 		va_end(ap);
 	}
 
-	rc = cdbc_request(cd, dsstring(&uri));
-	cd->js = json_loads(dsstring(&cd->buf),
+	rc = cdbc_request(cd, (char *)dsstring(&uri));
+	cd->js = json_loads((char *)dsstring(&cd->buf),
 		0,	// FIXME flags
 		&cd->jserr);
 
@@ -394,7 +397,6 @@ static size_t collect(void *ptr, size_t size, size_t nmemb, void *stream)
 
 static size_t sender(void *ptr, size_t size, size_t nmemb, void *buffr)
 {
-	size_t len;
 	struct buffer *buffer = buffr;
 	size_t nbytes = size * nmemb;
 
@@ -412,5 +414,5 @@ char *cdbc_lasturl(CDBC *cd)
 {
 	if (!cd || dslen(&cd->url) == 0)
 		return (NULL);
-	return (dsstring(&cd->url));
+	return ((char *)dsstring(&cd->url));
 }

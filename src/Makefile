@@ -1,4 +1,4 @@
-CFLAGS=-g
+CFLAGS=-g -Wall
 LIBNAME=libcdbc.a
 SRC=cdbc.c str.c
 OBJ= $(SRC:.c=.o)
