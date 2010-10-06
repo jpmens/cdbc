@@ -244,15 +244,17 @@ int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj, void *userdata), v
 
 		rows = json_object_get(cd->js, "rows");
 
+		rc = CDBC_OK;
 		for (n = 0; n < json_array_size(rows); n++) {
 			if (func(cd, json_array_get(rows, n), userdata) != 0) {
+				rc = CDBC_ERROR;
 				break;
 			}
 		}
 	}
 
 	dsfree(&uri);
-	return (CDBC_OK);
+	return (rc);
 }
 
 
