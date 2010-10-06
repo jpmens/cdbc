@@ -7,7 +7,7 @@ There are dozens of API implementations for [CouchDB](http://couchdb.apache.org/
 * [Getting started with C](http://wiki.apache.org/couchdb/Getting_started_with_C) on the CouchDB Wiki.
 * [Pillowtalk](http://www.sevenforge.com/pillowtalk/)
 
-The _C_ouch_DB_ _C_ library here, is a wrapper which uses Daniel Stenberg's [libCurl](http://curl.haxx.se/libcurl/) for the HTTP transport, and Petri Lehtinen's [Jansson](http://www.digip.org/jansson/), a C library for encoding, decoding and manipulating [JSON](http://www.json.org/) data.
+The _C_ouch_DB_ _C_ library (which has nothing at all to do with ODBC -- I noticed joke only later), is a wrapper which uses Daniel Stenberg's [libCurl](http://curl.haxx.se/libcurl/) for the HTTP transport, and Petri Lehtinen's [Jansson](http://www.digip.org/jansson/), a C library for encoding, decoding and manipulating [JSON](http://www.json.org/) data.
 
 I chose [Jansson](http://www.digip.org/jansson/) over other JSON C implementations because I particulary liked its interface, and it worked out of the box for me.
 
@@ -45,7 +45,7 @@ I chose [Jansson](http://www.digip.org/jansson/) over other JSON C implementatio
 ### char *cdbc_get_js_string(CDBC *cd, char *field);
 ### int cdbc_get_js_integer(CDBC *cd, char *field);
 
-### int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj), char *ddoc, char *view, char *arg, ...);
+### int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *rowobj), char *ddoc, char *view, char *arg, ...);
 
 ### char *cdbc_lasturl(CDBC *cd);
 

@@ -199,7 +199,7 @@ json_t *cdbc_get_js(CDBC *cd, char *docid)
 		
 }
 
-int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj), char *ddoc, char *view, char *arg, ...)
+int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj, void *userdata), void *userdata, char *ddoc, char *view, char *arg, ...)
 {
 	va_list ap;
 	char *s;
@@ -242,7 +242,7 @@ int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj), char *ddoc, char 
 		rows = json_object_get(cd->js, "rows");
 
 		for (n = 0; n < json_array_size(rows); n++) {
-			if (func(cd, json_array_get(rows, n)) != 0) {
+			if (func(cd, json_array_get(rows, n), userdata) != 0) {
 				break;
 			}
 		}

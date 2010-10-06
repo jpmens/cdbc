@@ -77,7 +77,7 @@ json_t *cdbc_get_js(CDBC *cd, char *docid);
 char *cdbc_get_js_string(CDBC *cd, char *field);
 int cdbc_get_js_integer(CDBC *cd, char *field);
 
-int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *obj), char *ddoc, char *view, char *arg, ...);
+int cdbc_view_walk(CDBC *cd, int (*func)(CDBC *, json_t *rowobj, void *userdata), void *userdata, char *ddoc, char *view, char *arg, ...);
 
 char *cdbc_lasturl(CDBC *cd);
 
